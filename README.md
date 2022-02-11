@@ -29,9 +29,9 @@ deactivate
 
 #### Installing Python (Windows)
 
-**Python Version:** 3.8.5
+**Python Version:** 3.8.x - 3.9.x
 
-1. Download the installer from https://www.python.org/downloads/. **Ensure you don't install a version newer than 3.9.x, otherwise torch will not work.**
+1. Download the installer from https://www.python.org/downloads/. **Ensure you install a supported version (see above).**
 2. Select 'Customize instillation'
 3. Click 'Next'
 4. Check '*Add Python to environment variables*' & set the install location to `C:\Python`, then click 'Install'
