@@ -28,3 +28,9 @@ jobs:
         path: junit/test-results-${{ matrix.python-version }}.xml
       # Use always() to always run this step to publish test results when there are test failures
       if: ${{ always() }}
+    - name: Publish Unit Test Results
+      uses: EnricoMi/publish-unit-test-result-action/composite@v1
+      if: always()
+      with:
+        files: pytest-results/**/*.xml
+        check_name: "Unit Test Results - python version: ${{ matrix.python-version }}"
