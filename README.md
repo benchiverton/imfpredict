@@ -25,6 +25,11 @@ python setup.py install
 deactivate
 ```
 
+### Running Tests within virtualenv
+```bash
+python -m pytest
+```
+
 ## System Requirements
 
 #### Installing Python (Windows)

@@ -1,1 +1,2 @@
-# from .file import *
+from .config import *
+from .normalizer import Normalizer
