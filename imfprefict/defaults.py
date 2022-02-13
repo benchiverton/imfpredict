@@ -1,3 +1,8 @@
+dataConfig = {
+    "window_size": 20,
+    "train_split_size": 0.80,
+}
+
 plotConfig = {
     "xticks_interval": 90,  # show a date every 90 days
     "color_actual": "#001f3f",
