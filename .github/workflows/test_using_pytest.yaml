@@ -37,5 +37,5 @@ jobs:
       uses: EnricoMi/publish-unit-test-result-action/composite@v1
       if: always()
       with:
-        files: pytest-results/**/*.xml
+        files: artifacts/**/*.xml
         check_name: "Unit Test Results - python version: ${{ matrix.python-version }}"
