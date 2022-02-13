@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
 
-import imfprefict.config as config
+import imfprefict.defaults as defaults
 
 
 def get_data(config):
@@ -19,11 +19,11 @@ def get_data(config):
 
 
 if __name__ == "__main__":
-    data_date, data_close_price, num_data_points, display_date_range = get_data(config)
+    data_date, data_close_price, num_data_points, display_date_range = get_data(defaults)
 
     fig = figure(figsize=(25, 5), dpi=80)
     fig.patch.set_facecolor((1.0, 1.0, 1.0))
-    plt.plot(data_date, data_close_price, color=config.plotSettings["color_actual"])
+    plt.plot(data_date, data_close_price, color=defaults.plotConfig["color_actual"])
     plt.title("Plot test for data" + ", " + display_date_range)
     plt.grid(visible=None, which='major', axis='y', linestyle='--')
     plt.show()
