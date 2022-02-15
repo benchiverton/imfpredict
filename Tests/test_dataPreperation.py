@@ -7,7 +7,7 @@ import numpy as np
 import imfprefict.dataPreperation as dp
 
 
-class TestRead:
+class TestDataPreperation:
     @pytest.mark.parametrize("window_data", [
         {"x": np.array([1, 2, 3, 4, 5]), "windowSize": 1, "windowed_x": [1, 2, 3, 4, 5]},
         {"x": np.array([1, 2, 3, 4, 5]), "windowSize": 2, "windowed_x": [[1, 2], [2, 3], [3, 4], [4, 5]]},
