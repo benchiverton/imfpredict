@@ -1,4 +1,9 @@
-plotSettings = {
+dataConfig = {
+    "window_size": 20,
+    "train_split_size": 0.80,
+}
+
+plotConfig = {
     "xticks_interval": 90,  # show a date every 90 days
     "color_actual": "#001f3f",
     "color_train": "#3D9970",
@@ -8,14 +13,14 @@ plotSettings = {
     "color_pred_test": "#FF4136",
 }
 
-modelSettings = {
+modelConfig = {
     "input_size": 1,  # since we are only using 1 feature, close price
     "num_lstm_layers": 2,
     "lstm_size": 32,
     "dropout": 0.2,
-},
+}
 
-trainingSettings = {
+trainingConfig = {
     "device": "cpu",  # "cuda" or "cpu"
     "batch_size": 64,
     "num_epoch": 100,

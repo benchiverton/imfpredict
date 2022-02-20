@@ -7,7 +7,7 @@ import numpy as np
 from imfprefict import Normalizer
 
 
-class TestRead:
+class TestNormalizer:
     @pytest.mark.parametrize("fit_transform_data", [
         {"x": [-136, 178], "normalized_x": [-1, 1]},  # only possible way to have mean 0 SD 1 for 2 data points is -1, 1
         {"x": [112, -157], "normalized_x": [1, -1]},  # only possible way to have mean 0 SD 1 for 2 data points is -1, 1
