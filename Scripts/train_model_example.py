@@ -105,4 +105,4 @@ if __name__ == "__main__":
         loss_val, lr_val = run_epoch(val_dataloader)
         scheduler.step()
 
-        print('Epoch[{}/{}] | loss train:{:.6f}, test:{:.6f} | lr:{:.6f}'.format(epoch + 1, defaults.trainingConfig["num_epoch"], loss_train, loss_val, lr_train))
+        print(f'Epoch[{epoch + 1}/{defaults.trainingConfig["num_epoch"]}] | loss train:{loss_train:.6f}, test:{loss_val:.6f} | lr:{lr_train:.6f}')
