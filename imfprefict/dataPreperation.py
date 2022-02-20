@@ -8,7 +8,7 @@ def window_data(x, window_size):
     return output[:-1], output[-1]
 
 
-def prepare_data_y(x, window_size):
+def prepare_data_y(y, window_size):
     # use the next day as label
-    output = x[window_size:]
+    output = y[window_size:]
     return output
