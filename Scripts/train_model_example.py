@@ -2,6 +2,9 @@ import datetime
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+from matplotlib.pyplot import figure
+
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
@@ -85,7 +88,7 @@ if __name__ == "__main__":
     to_plot_data_y_train = np.where(to_plot_data_y_train == 0, None, to_plot_data_y_train)
     to_plot_data_y_val = np.where(to_plot_data_y_val == 0, None, to_plot_data_y_val)
 
-    # print data shapes
+    # train model
 
     dataset_train = TimeSeriesDataset(data_x_train, data_y_train)
     dataset_val = TimeSeriesDataset(data_x_val, data_y_val)
@@ -106,3 +109,61 @@ if __name__ == "__main__":
         scheduler.step()
 
         print(f'Epoch[{epoch + 1}/{defaults.trainingConfig["num_epoch"]}] | loss train:{loss_train:.6f}, test:{loss_val:.6f} | lr:{lr_train:.6f}')
+
+    # here we re-initialize dataloader so the data isn't shuffled, so we can plot the values by date
+
+    train_dataloader = DataLoader(dataset_train, batch_size=defaults.trainingConfig["batch_size"], shuffle=False)
+    val_dataloader = DataLoader(dataset_val, batch_size=defaults.trainingConfig["batch_size"], shuffle=False)
+
+    model.eval()
+
+    # predict on the training data, to see how well the model managed to learn and memorize
+
+    predicted_train = np.array([])
+
+    for idx, (x, y) in enumerate(train_dataloader):
+        x = x.to(defaults.trainingConfig["device"])
+        out = model(x)
+        out = out.cpu().detach().numpy()
+        predicted_train = np.concatenate((predicted_train, out))
+
+    # predict on the validation data, to see how the model does
+
+    predicted_val = np.array([])
+
+    for idx, (x, y) in enumerate(val_dataloader):
+        x = x.to(defaults.trainingConfig["device"])
+        out = model(x)
+        out = out.cpu().detach().numpy()
+        predicted_val = np.concatenate((predicted_val, out))
+
+    # prepare data for plotting
+
+    to_plot_data_y_train_pred = np.zeros(num_data_points)
+    to_plot_data_y_val_pred = np.zeros(num_data_points)
+
+    to_plot_data_y_train_pred[defaults.dataConfig["window_size"]:split_index+defaults.dataConfig["window_size"]] = scaler.inverse_transform(predicted_train)
+    to_plot_data_y_val_pred[split_index+defaults.dataConfig["window_size"]:] = scaler.inverse_transform(predicted_val)
+
+    to_plot_data_y_train_pred = np.where(to_plot_data_y_train_pred == 0, None, to_plot_data_y_train_pred)
+    to_plot_data_y_val_pred = np.where(to_plot_data_y_val_pred == 0, None, to_plot_data_y_val_pred)
+
+    # print data shapes
+
+    dataset_train = TimeSeriesDataset(data_x_train, data_y_train)
+    dataset_val = TimeSeriesDataset(data_x_val, data_y_val)
+
+    print("Train data shape", dataset_train.x.shape, dataset_train.y.shape)
+    print("Validation data shape", dataset_val.x.shape, dataset_val.y.shape)
+
+    # plot
+
+    fig = figure(figsize=(25, 5), dpi=80)
+    fig.patch.set_facecolor((1.0, 1.0, 1.0))
+    plt.plot(data_date, data_close_price, label="Actual prices", color=defaults.plotConfig["color_actual"])
+    plt.plot(data_date, to_plot_data_y_train_pred, label="Predicted prices (train)", color=defaults.plotConfig["color_pred_train"])
+    plt.plot(data_date, to_plot_data_y_val_pred, label="Predicted prices (validation)", color=defaults.plotConfig["color_pred_val"])
+    plt.title("Plot test data - compare predicted to actual")
+    plt.grid(visible=None, which='major', axis='y', linestyle='--')
+    plt.legend()
+    plt.show()
