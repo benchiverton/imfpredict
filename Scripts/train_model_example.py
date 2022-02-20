@@ -2,13 +2,15 @@ import datetime
 
 import numpy as np
 
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import figure
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader
 
 import imfprefict.defaults as defaults
 import imfprefict.dataPreperation as dp
 from imfprefict.normalizer import Normalizer
 from imfprefict.timeSeriesDataset import TimeSeriesDataset
+from imfprefict.ltsmModel import LSTMModel
 
 
 def get_data(config):
@@ -19,6 +21,37 @@ def get_data(config):
     display_date_range = data_date[0].strftime("%d/%m/%Y") + " - " + data_date[9].strftime("%d/%m/%Y")
 
     return data_date, data_close_price, num_data_points, display_date_range
+
+
+def run_epoch(dataloader, is_training=False):
+    epoch_loss = 0
+
+    if is_training:
+        model.train()
+    else:
+        model.eval()
+
+    for idx, (x, y) in enumerate(dataloader):
+        if is_training:
+            optimizer.zero_grad()
+
+        batchsize = x.shape[0]
+
+        x = x.to(defaults.trainingConfig["device"])
+        y = y.to(defaults.trainingConfig["device"])
+
+        out = model(x)
+        loss = criterion(out.contiguous(), y.contiguous())
+
+        if is_training:
+            loss.backward()
+            optimizer.step()
+
+        epoch_loss += (loss.detach().item() / batchsize)
+
+    lr = scheduler.get_last_lr()[0]
+
+    return epoch_loss, lr
 
 
 if __name__ == "__main__":
@@ -57,16 +90,19 @@ if __name__ == "__main__":
     dataset_train = TimeSeriesDataset(data_x_train, data_y_train)
     dataset_val = TimeSeriesDataset(data_x_val, data_y_val)
 
-    print("Train data shape", dataset_train.x.shape, dataset_train.y.shape)
-    print("Validation data shape", dataset_val.x.shape, dataset_val.y.shape)
+    train_dataloader = DataLoader(dataset_train, batch_size=defaults.trainingConfig["batch_size"], shuffle=True)
+    val_dataloader = DataLoader(dataset_val, batch_size=defaults.trainingConfig["batch_size"], shuffle=True)
 
-    # plot
+    model = LSTMModel(input_size=defaults.modelConfig["input_size"], hidden_layer_size=defaults.modelConfig["lstm_size"], num_layers=defaults.modelConfig["num_lstm_layers"], output_size=1, dropout=defaults.modelConfig["dropout"])
+    model = model.to(defaults.trainingConfig["device"])
 
-    fig = figure(figsize=(25, 5), dpi=80)
-    fig.patch.set_facecolor((1.0, 1.0, 1.0))
-    plt.plot(data_date, to_plot_data_y_train, label="Prices (train)", color=defaults.plotConfig["color_train"])
-    plt.plot(data_date, to_plot_data_y_val, label="Prices (validation)", color=defaults.plotConfig["color_val"])
-    plt.title("Plot test data - showing training and validation data")
-    plt.grid(visible=None, which='major', axis='y', linestyle='--')
-    plt.legend()
-    plt.show()
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=defaults.trainingConfig["learning_rate"], betas=(0.9, 0.98), eps=1e-9)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=defaults.trainingConfig["scheduler_step_size"], gamma=0.1)
+
+    for epoch in range(defaults.trainingConfig["num_epoch"]):
+        loss_train, lr_train = run_epoch(train_dataloader, is_training=True)
+        loss_val, lr_val = run_epoch(val_dataloader)
+        scheduler.step()
+
+        print('Epoch[{}/{}] | loss train:{:.6f}, test:{:.6f} | lr:{:.6f}'.format(epoch + 1, defaults.trainingConfig["num_epoch"], loss_train, loss_val, lr_train))

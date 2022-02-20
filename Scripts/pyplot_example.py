@@ -11,7 +11,7 @@ import imfprefict.defaults as defaults
 def get_data(config):
     base = datetime.datetime.today().date()
     data_date = [base + datetime.timedelta(days=x) for x in range(1000)]
-    data_close_price = np.random.rand(1000)
+    data_close_price = [np.sin(x / 10) for x in range(1000)]
     num_data_points = 1000
     display_date_range = data_date[0].strftime("%d/%m/%Y") + " - " + data_date[9].strftime("%d/%m/%Y")
 

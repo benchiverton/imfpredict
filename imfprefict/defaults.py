@@ -18,7 +18,7 @@ modelConfig = {
     "num_lstm_layers": 2,
     "lstm_size": 32,
     "dropout": 0.2,
-},
+}
 
 trainingConfig = {
     "device": "cpu",  # "cuda" or "cpu"
