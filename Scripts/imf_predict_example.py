@@ -115,7 +115,9 @@ if __name__ == "__main__":
     scaler = Normalizer()
     normalized_data_performance = scaler.fit_transform(data_performance)
 
-    # split dataset
+    # split dataset - some notes about this data (as of writing this comment):
+    # - there are 14 features
+    # - each feature has 244 data points
 
     data_x, data_x_unseen = dp.window_data(normalized_data_performance, window_size=dataConfig["window_size"])
     data_y = dp.prepare_data_y(normalized_data_performance, window_size=dataConfig["window_size"])
@@ -128,8 +130,6 @@ if __name__ == "__main__":
 
     # train model
 
-    print(data_x_train.shape)
-    print(data_y_train.shape)
     dataset_train = TimeSeriesDataset(data_x_train, data_y_train)
     dataset_val = TimeSeriesDataset(data_x_val, data_y_val)
 
