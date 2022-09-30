@@ -142,8 +142,8 @@ if __name__ == "__main__":
     to_plot_data_y_train_pred = np.zeros(num_data_points)
     to_plot_data_y_val_pred = np.zeros(num_data_points)
 
-    to_plot_data_y_train_pred[defaults.dataConfig["window_size"]:split_index+defaults.dataConfig["window_size"]] = scaler.inverse_transform(predicted_train)
-    to_plot_data_y_val_pred[split_index+defaults.dataConfig["window_size"]:] = scaler.inverse_transform(predicted_val)
+    to_plot_data_y_train_pred[defaults.dataConfig["window_size"]:split_index + defaults.dataConfig["window_size"]] = scaler.inverse_transform(predicted_train)
+    to_plot_data_y_val_pred[split_index + defaults.dataConfig["window_size"]:] = scaler.inverse_transform(predicted_val)
 
     to_plot_data_y_train_pred = np.where(to_plot_data_y_train_pred == 0, None, to_plot_data_y_train_pred)
     to_plot_data_y_val_pred = np.where(to_plot_data_y_val_pred == 0, None, to_plot_data_y_val_pred)

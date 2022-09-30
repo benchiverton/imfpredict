@@ -3,8 +3,8 @@ import numpy as np
 
 def window_data(x, window_size):
     # perform windowing
-    n_row = x.shape[0] - window_size + 1
-    output = np.lib.stride_tricks.as_strided(x, shape=(n_row, window_size), strides=(x.strides[0], x.strides[0]))
+    # n_row = x.shape[0] - window_size + 1
+    output = np.lib.stride_tricks.as_strided(x, shape=(x.shape[0] + 1, window_size), strides=(x.strides[0], x.strides[0]))
     return output[:-1], output[-1]
 
 

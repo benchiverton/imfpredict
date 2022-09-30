@@ -15,6 +15,7 @@ import imfprefict.dataPreperation as dp
 from imfprefict.normalizer import Normalizer
 from imfprefict.timeSeriesDataset import TimeSeriesDataset
 from imfprefict.ltsmModel import LSTMModel
+from imfprefict.data.csvFileRepository import CsvFileRepository
 
 dataConfig = {
     "window_size": 20,
@@ -31,10 +32,10 @@ plotConfig = {
 }
 
 modelConfig = {
-    "input_size": 1,  # since we are only using 1 feature
+    "input_size": 38,
     "num_lstm_layers": 2,
-    "lstm_size": 32,
-    "dropout": 0.2,
+    "lstm_size": 64,
+    "dropout": 0.1,
 }
 
 trainingConfig = {
@@ -47,12 +48,31 @@ trainingConfig = {
 
 
 def get_data():
-    base = datetime.datetime.today().date()
-    data_date = [base + datetime.timedelta(days=x) for x in range(1000)]
-    data_close_price = [np.sin(x / 12) for x in range(1000)]
-    num_data_points = 1000
+    reader = CsvFileRepository()    
+    data = reader.get_data("Scripts\\TestData\\Exchange_Rate_Report.csv")
 
-    return data_date, data_close_price, num_data_points
+    currency = "Euro(EUR)"
+
+    dates_strings = list(data[currency].keys())
+    dates = [datetime.datetime.strptime(date, '%d-%b-%Y').date() for date in dates_strings]
+
+    performance_changes = []
+    for p in data.values():
+        performance = list(p.values())
+        performance_change = []
+        plast = performance[0]
+        for idx, p in enumerate(performance):
+            if(p == "" or plast == ""):
+                performance_change.append(0.0000001)
+            else:
+                performance_change.append((float(p) - float(plast)) / float(plast))
+            plast = p
+        performance_changes.append(performance_change)    
+    performance_changes_array = np.array([np.array(xi) for xi in performance_changes])
+
+    num_data_points = len(dates)
+
+    return currency, dates, performance_changes_array, num_data_points
 
 
 def run_epoch(dataloader, is_training=False):
@@ -90,15 +110,15 @@ if __name__ == "__main__":
 
     # get and normalise data
 
-    data_date, data_close_price, num_data_points = get_data()
+    currency, data_date, data_performance, num_data_points = get_data()
 
     scaler = Normalizer()
-    normalized_data_close_price = scaler.fit_transform(data_close_price)
+    normalized_data_performance = scaler.fit_transform(data_performance)
 
     # split dataset
 
-    data_x, data_x_unseen = dp.window_data(normalized_data_close_price, window_size=dataConfig["window_size"])
-    data_y = dp.prepare_data_y(normalized_data_close_price, window_size=dataConfig["window_size"])
+    data_x, data_x_unseen = dp.window_data(normalized_data_performance, window_size=dataConfig["window_size"])
+    data_y = dp.prepare_data_y(normalized_data_performance, window_size=dataConfig["window_size"])
 
     split_index = int(data_y.shape[0] * dataConfig["train_split_size"])
     data_x_train = data_x[:split_index]
@@ -108,6 +128,8 @@ if __name__ == "__main__":
 
     # train model
 
+    print(data_x_train.shape)
+    print(data_y_train.shape)
     dataset_train = TimeSeriesDataset(data_x_train, data_y_train)
     dataset_val = TimeSeriesDataset(data_x_val, data_y_val)
 
@@ -163,7 +185,7 @@ if __name__ == "__main__":
 
     # prepare plots
 
-    plot_range = 10
+    plot_range = len(predicted_val)
     to_plot_data_y_val = np.zeros(plot_range)
     to_plot_data_y_val_pred = np.zeros(plot_range)
     to_plot_data_y_test_pred = np.zeros(plot_range)
@@ -184,10 +206,10 @@ if __name__ == "__main__":
 
     fig = figure(figsize=(25, 5), dpi=80)
     fig.patch.set_facecolor((1.0, 1.0, 1.0))
-    plt.plot(plot_date_test, to_plot_data_y_val, label="Actual prices", marker=".", markersize=10, color=plotConfig["color_actual"])
-    plt.plot(plot_date_test, to_plot_data_y_val_pred, label="Past predicted prices", marker=".", markersize=10, color=plotConfig["color_pred_val"])
-    plt.plot(plot_date_test, to_plot_data_y_test_pred, label="Predicted price for next day", marker=".", markersize=20, color=plotConfig["color_pred_test"])
-    plt.title("Predicted close price of the next trading day")
+    plt.plot(plot_date_test, to_plot_data_y_val, label="Actual performance", marker=".", markersize=10, color=plotConfig["color_actual"])
+    plt.plot(plot_date_test, to_plot_data_y_val_pred, label="Past predicted performance", marker=".", markersize=10, color=plotConfig["color_pred_val"])
+    plt.plot(plot_date_test, to_plot_data_y_test_pred, label="Predicted performance for next day", marker=".", markersize=20, color=plotConfig["color_pred_test"])
+    plt.title("Predicted currency performance for " + currency)
     plt.grid(b=None, which='major', axis='y', linestyle='--')
     plt.legend()
     plt.show()
